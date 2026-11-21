@@ -2,9 +2,11 @@ from datetime import date
 
 from ..models import Reservation
 from ..repositories import GuestRepository, ReservationRepository, RoomRepository
-from .exceptions import NotFoundError, ValidationError
+from .exceptions import BusinessRuleError, NotFoundError, ValidationError
 
 REQUIRED_FIELDS = ("room_id", "guest_id", "check_in", "check_out", "guests_count")
+# Estados en los que una reserva ocupa la habitación.
+ACTIVE_STATUSES = ("confirmed", "checked_in")
 
 
 class ReservationService:
@@ -43,6 +45,11 @@ class ReservationService:
         except (TypeError, ValueError):
             raise ValidationError("Fechas en formato AAAA-MM-DD y guests_count numérico")
 
+        self._check_room_available(room)                 # RN5
+        self._check_capacity(room, guests_count)         # RN4
+        self._check_dates(check_in, check_out)           # RN2 y RN3
+        self._check_no_overlap(room, check_in, check_out)  # RN1
+
         nights = (check_out - check_in).days
         total_price = nights * room.price_per_night
 
@@ -56,6 +63,43 @@ class ReservationService:
             total_price=total_price,
         )
         return self.reservations.save(reservation)
+
+    # --- Reglas de negocio al crear una reserva (ver REGLAS.md) ---
+
+    def _check_no_overlap(self, room, check_in, check_out):
+        """RN1 · Sin doble reserva."""
+        existing = self.reservations.find_overlapping(room.id, check_in, check_out, ACTIVE_STATUSES)
+        if existing:
+            raise BusinessRuleError(
+                f"La habitación {room.number} ya está reservada entre el "
+                f"{existing.check_in.isoformat()} y el {existing.check_out.isoformat()}"
+            )
+
+    @staticmethod
+    def _check_dates(check_in, check_out):
+        """RN2 · Fechas coherentes y RN3 · Sin reservas en el pasado."""
+        if check_out <= check_in:
+            raise BusinessRuleError("La fecha de salida debe ser posterior a la fecha de ingreso")
+        if check_in < date.today():
+            raise BusinessRuleError("No se puede reservar para una fecha que ya pasó")
+
+    @staticmethod
+    def _check_capacity(room, guests_count):
+        """RN4 · Capacidad de la habitación."""
+        if guests_count > room.capacity:
+            raise BusinessRuleError(
+                f"La habitación {room.number} admite como máximo {room.capacity} persona(s)"
+            )
+
+    @staticmethod
+    def _check_room_available(room):
+        """RN5 · Habitación en mantenimiento."""
+        if room.status == "maintenance":
+            raise BusinessRuleError(
+                f"La habitación {room.number} está en mantenimiento y no se puede reservar"
+            )
+
+    # --- Cambios de estado ---
 
     def cancel(self, reservation_id):
         return self._change_status(reservation_id, "cancelled")

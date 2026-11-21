@@ -12,3 +12,13 @@ class ReservationRepository(BaseRepository):
         if guest_id:
             query = query.filter_by(guest_id=guest_id)
         return query.order_by(Reservation.check_in).all()
+
+    def find_overlapping(self, room_id, check_in, check_out, statuses):
+        """Primera reserva de la habitación, en alguno de los estados dados,
+        cuyas fechas se cruzan con el rango [check_in, check_out)."""
+        return Reservation.query.filter(
+            Reservation.room_id == room_id,
+            Reservation.status.in_(statuses),
+            Reservation.check_in < check_out,
+            Reservation.check_out > check_in,
+        ).first()
