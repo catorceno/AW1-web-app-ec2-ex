@@ -3,18 +3,18 @@
 Reglas que se desprenden del relato de Lucía (gerente) y que el sistema no cumplía, en el orden en que aparecen en el relato.
 Cuando una regla de validación no se cumple, la API responde **422** con `{ "error": "mensaje" }`.
 
-| # | Regla | Momento | Endpoint |
-|---|---|---|---|
-| RN1 | Sin doble reserva | Crear reserva | `POST /api/reservations` |
-| RN2 | Fechas coherentes | Crear reserva | `POST /api/reservations` |
-| RN3 | Sin reservas en el pasado | Crear reserva | `POST /api/reservations` |
-| RN4 | Capacidad de la habitación | Crear reserva | `POST /api/reservations` |
-| RN5 | Habitación en mantenimiento | Crear reserva | `POST /api/reservations` |
-| RN6 | Descuento por estadía larga | Crear reserva | `POST /api/reservations` |
-| RN7 | Penalidad por cancelación tardía | Cancelar | `PATCH /api/reservations/:id/cancel` |
-| RN8 | Transiciones de estado válidas | Check-in, check-out, cancelar | `PATCH /api/reservations/:id/...` |
-| RN9 | Check-in desde la fecha de ingreso | Check-in | `PATCH /api/reservations/:id/check-in` |
-| RN10 | Límite de reservas activas | Crear reserva | `POST /api/reservations` |
+| # | Regla | Momento | Endpoint | Estado |
+|---|---|---|---|---|
+| RN1 | Sin doble reserva | Crear reserva | `POST /api/reservations` | Implementada |
+| RN2 | Fechas coherentes | Crear reserva | `POST /api/reservations` | Implementada |
+| RN3 | Sin reservas en el pasado | Crear reserva | `POST /api/reservations` | Implementada |
+| RN4 | Capacidad de la habitación | Crear reserva | `POST /api/reservations` | Implementada |
+| RN5 | Habitación en mantenimiento | Crear reserva | `POST /api/reservations` | Implementada |
+| RN6 | Descuento por estadía larga | Crear reserva | `POST /api/reservations` | Solo identificada |
+| RN7 | Penalidad por cancelación tardía | Cancelar | `PATCH /api/reservations/:id/cancel` | Solo identificada |
+| RN8 | Transiciones de estado válidas | Check-in, check-out, cancelar | `PATCH /api/reservations/:id/...` | Solo identificada |
+| RN9 | Check-in desde la fecha de ingreso | Check-in | `PATCH /api/reservations/:id/check-in` | Solo identificada |
+| RN10 | Límite de reservas activas | Crear reserva | `POST /api/reservations` | Solo identificada |
 
 ---
 
